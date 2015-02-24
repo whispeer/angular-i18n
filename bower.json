@@ -1,0 +1,27 @@
+{
+  "name": "angular-i18n",
+  "version": "0.1.0",
+  "homepage": "https://github.com/whispeer/angular-i18n",
+  "authors": [
+    "Nils Kenneweg <nk@ovt.me>"
+  ],
+  "description": "An angular i18n module with some advanced element magic",
+  "main": "src/localizationModule.js",
+  "moduleType": [
+    "amd"
+  ],
+  "keywords": [
+    "angular",
+    "i18n",
+    "module",
+    "elements"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
