@@ -90,7 +90,6 @@ Enjoy!
 			};
 
 			var retryOnFail = function ($http, language, trial) {
-				var otherUrl = getLanguageUrl(language, trial + 1);
 				if (getLanguageUrl(language, trial + 1) !== getLanguageUrl(language, trial)) {
 					return loadLanguage($http, language, trial + 1);
 				}
@@ -140,43 +139,19 @@ Enjoy!
 
 		// localization service responsible for retrieving resource files from the server and
 		// managing the translation dictionary
-		module.factory("localize", ["$http", "$rootScope", "$window", function ($http, $rootScope, $window) {
+		module.factory("localize", ["localizationLoader", "$rootScope", "$window", function (localizationLoader, $rootScope, $window) {
 			var language = $window.navigator.userLanguage || $window.navigator.language;
 			var dictionary = {};
 			var resourceFileLoaded = false;
-
-			function successCallback(data) {
-				// store the returned array in the dictionary
-				dictionary = data;
-				// set the flag that the resource are loaded
-				resourceFileLoaded = true;
-				// broadcast that the file has been loaded
-				$rootScope.$broadcast("localizeResourcesUpdates");
-			}
-
-			function loadDefault() {
-				// the request failed set the url to the default resource file
-				var url = "assets/js/i18n/l_en-US.json";
-				// request the default resource file
-				$http({ method: "GET", url: url, cache: false }).success(successCallback);
-			}
 
 			// loads the language resource file from the server
 			function initLocalizedResources() {
 				resourceFileLoaded = false;
 
-				// build the url to retrieve the localized resource file
-				var url = "assets/js/i18n/l_" + language + ".json";
-				// request the resource file
-				$http({ method: "GET", url: url, cache: false }).success(successCallback).error(function () {
-					if (language.length === 2) {
-						loadDefault();
-					} else {
-						// the request failed set the url to a different url
-						var url = "assets/js/i18n/l_" + language.substr(0, 2) + ".json";
-
-						$http({ method: "GET", url: url, cache: false }).success(successCallback).error(loadDefault);
-					}
+				localizationLoader.load(language).then(function (data) {
+					dictionary = data.data;
+					resourceFileLoaded = true;
+					$rootScope.$broadcast("localizeResourcesUpdates");
 				});
 			}
 
@@ -208,6 +183,7 @@ Enjoy!
 						if (previousValue[attr]) {
 							return previousValue[attr];
 						}
+						return {};
 					}, dictionary);
 
 					if (typeof tag === "undefined" || typeof tag === "object") {
