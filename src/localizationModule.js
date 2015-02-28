@@ -152,76 +152,94 @@ Enjoy!
 
 		// localization service responsible for retrieving resource files from the server and
 		// managing the translation dictionary
-		module.factory("localize", ["localizationLoader", "$rootScope", "$window", function (localizationLoader, $rootScope, $window) {
-			var language = $window.navigator.userLanguage || $window.navigator.language;
+		module.provider("localize", function () {
 			var dictionary = {};
 			var resourceFileLoaded = false;
 
-			// loads the language resource file from the server
-			function initLocalizedResources() {
-				resourceFileLoaded = false;
-
-				localizationLoader.load(language).then(function (data) {
-					dictionary = data.data;
-					resourceFileLoaded = true;
-					$rootScope.$broadcast("localizeResourcesUpdates");
-				});
-			}
-
-			var localize = {
-				getLanguage: function () {
-					return language;
-				},
-
-				// allows setting of language on the fly
-				setLanguage: function (value) {
-					if (typeof value !== "string") {
-						console.error("language should be a string!");
-						return;
-					}
-
-					if (language !== value) {
-						language = value;
-						initLocalizedResources();
-					}
-				},
-
-				// checks the dictionary for a localized resource string
-				getLocalizedString: function (value, replacements) {
-					if (!resourceFileLoaded) {
-						return "";
-					}
-
-					var tag = value.split(".").reduce(function (previousValue, attr) {
-						if (previousValue[attr]) {
-							return previousValue[attr];
-						}
-						return {};
-					}, dictionary);
-
-					if (typeof tag === "undefined" || typeof tag === "object") {
-						return invalidTranslation(value);
-					}
-
-					if (replacements) {
-						var element;
-						for (element in replacements) {
-							if (replacements.hasOwnProperty(element)) {
-								tag = tag.replace(getFullReplacer(element), replacements[element]);
-							}
-						}
-					}
-
-					return tag;
-				}
+			var language = window.navigator.userLanguage || window.navigator.language;
+			this.setBaseLanguage = function (baseLanguage) {
+				language = baseLanguage;
 			};
 
-			// force the load of the resource file
-			initLocalizedResources();
+			this.setLocales = function (_dictionary) {
+				dictionary = _dictionary;
+				resourceFileLoaded = true;
+			};
 
-			// return the local instance when called
-			return localize;
-		} ]);
+			this.$get = ["localizationLoader", "$rootScope", "$window", function (localizationLoader, $rootScope) {
+				// loads the language resource file from the server
+				function initLocalizedResources() {
+					resourceFileLoaded = false;
+
+					localizationLoader.load(language).then(function (data) {
+						dictionary = data.data;
+						resourceFileLoaded = true;
+						$rootScope.$broadcast("localizeResourcesUpdates");
+					});
+				}
+
+				var localize = {
+					getLanguage: function () {
+						return language;
+					},
+
+					setLocales: function (_dictionary) {
+						this.resourceFileLoaded = true;
+						this.dictionary = _dictionary;
+					},
+
+					// allows setting of language on the fly
+					setLanguage: function (value) {
+						if (typeof value !== "string") {
+							console.error("language should be a string!");
+							return;
+						}
+
+						if (language !== value) {
+							language = value;
+							initLocalizedResources();
+						}
+					},
+
+					// checks the dictionary for a localized resource string
+					getLocalizedString: function (value, replacements) {
+						if (!resourceFileLoaded) {
+							return "";
+						}
+
+						var tag = value.split(".").reduce(function (previousValue, attr) {
+							if (previousValue[attr]) {
+								return previousValue[attr];
+							}
+							return previousValue;
+						}, dictionary);
+
+						if (typeof tag === "undefined" || typeof tag === "object") {
+							return invalidTranslation(value);
+						}
+
+						if (replacements) {
+							var element;
+							for (element in replacements) {
+								if (replacements.hasOwnProperty(element)) {
+									tag = tag.replace(getFullReplacer(element), replacements[element]);
+								}
+							}
+						}
+
+						return tag;
+					}
+				};
+
+				if (!resourceFileLoaded) {
+					// force the load of the resource file
+					initLocalizedResources();
+				}
+
+				// return the local instance when called
+				return localize;
+			}];
+		});
 
 		// simple translation filter
 		// usage {{ TOKEN | i18n }}
