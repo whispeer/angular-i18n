@@ -76,6 +76,7 @@ Enjoy!
 		module.provider("localizationLoader", function () {
 			var fallBackLanguage = "en-US";
 			var location = "assets/js/i18n/l_";
+			var availableLanguages = [];
 
 			var getLanguageUrl = function (language, trial) {
 				return location + language + ".json";
@@ -98,9 +99,15 @@ Enjoy!
 				if (otherLanguage !== language) {
 					return loadLanguage($http, otherLanguage, 0);
 				}
+
+				throw new Error("no localization found!");
 			};
 
 			var loadLanguage = function ($http, language, trial) {
+				if (availableLanguages.length > 0 && availableLanguages.indexOf(language) === -1) {
+					return retryOnFail($http, language, trial);
+				}
+
 				return $http.get(getLanguageUrl(language)).catch(retryOnFail.bind(null, $http, language, trial));
 			};
 
