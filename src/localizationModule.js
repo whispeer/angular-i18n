@@ -104,6 +104,8 @@ Enjoy!
 			};
 
 			var loadLanguage = function ($http, language, trial) {
+				language = language.toLowerCase();
+
 				if (availableLanguages.length > 0 && availableLanguages.indexOf(language) === -1) {
 					return retryOnFail($http, language, trial);
 				}
