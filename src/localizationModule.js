@@ -135,6 +135,10 @@ Enjoy!
 				loadLanguage = func;
 			};
 
+			this.setAvailableLanguages = function (_availableLanguages) {
+				availableLanguages = _availableLanguages;
+			};
+
 			this.$get = ["$http", function ($http) {
 				return {
 					load: function (baseLanguage) {
