@@ -68,7 +68,7 @@ Enjoy!
 
 		function invalidTranslation(value) {
 			console.warn("Invalid Translation:" + value);
-			return "";
+			return "Missing Translation: " + value;
 		}
 
 		var module = angular.module("localization", []);
