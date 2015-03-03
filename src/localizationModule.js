@@ -201,6 +201,52 @@ Enjoy!
 						}
 					},
 
+					parsePluralizationMatcher: function (pluralMatcher) {
+						var pluralPart = pluralMatcher.split(".."), min, max;
+
+						if (pluralPart.length === 1) {
+							min = parseInt(pluralPart[0], 10);
+							max = min;
+						} else if (pluralPart.length === 2) {
+							min = parseInt(pluralPart[0], 10);
+							max = parseInt(pluralPart[1], 10);
+						}
+
+						if (isNan(min) && isNan(max)) {
+							return false;
+						}
+
+						if (isNan(min)) {
+							min = Infinity;
+						}
+
+						if (isNan(max)) {
+							max = Infinity;
+						}
+
+						return { min: min, max: max };
+					},
+
+					matchesPluralization: function (pluralMatcher, count) {
+						var parsed = localize.parsePluralizationMatcher(pluralMatcher);
+						return parsed && parsed.min <= count && parsed.max >= count;
+					},
+
+					tryPluralization: function (tag, count) {
+						var key, countInt;
+						countInt = parseInt(count, 10);
+						if (isNaN(countInt)) {
+							return tag;
+						}
+
+						var plurals = dictionary.plurals;
+						for (key in plurals) {
+							if (plurals.hasOwnProperty(key) && localize.matchesPluralization(key, count)) {
+								return tag[plurals[key]];
+							}
+						}
+					},
+
 					// checks the dictionary for a localized resource string
 					getLocalizedString: function (value, replacements) {
 						if (!resourceFileLoaded) {
@@ -213,6 +259,10 @@ Enjoy!
 							}
 							return previousValue;
 						}, dictionary);
+
+						if (typeof tag === "object") {
+							tag = localize.tryPluralization(tag, replacements.count);
+						}
 
 						if (typeof tag === "undefined" || typeof tag === "object") {
 							return invalidTranslation(value);
