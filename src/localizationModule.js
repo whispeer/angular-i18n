@@ -212,15 +212,15 @@ Enjoy!
 							max = parseInt(pluralPart[1], 10);
 						}
 
-						if (isNan(min) && isNan(max)) {
+						if (isNaN(min) && isNaN(max)) {
 							return false;
 						}
 
-						if (isNan(min)) {
+						if (isNaN(min)) {
 							min = Infinity;
 						}
 
-						if (isNan(max)) {
+						if (isNaN(max)) {
 							max = Infinity;
 						}
 
