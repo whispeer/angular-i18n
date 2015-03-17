@@ -25,9 +25,9 @@ Enjoy!
 			return regExpFromString(getReplacementString(replacer));
 		}
 
-		function getReplacementString(replacer) {
+		var getReplacementString = function (replacer) {
 			return "{" + replacer + "}";
-		}
+		};
 
 		function escapeRegExp(string) {
 			return string.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
@@ -90,6 +90,10 @@ Enjoy!
 				return fallBackLanguage;
 			};
 
+			var transformResponse = function (dict) {
+				return dict;
+			};
+
 			var retryOnFail = function ($http, language, trial) {
 				if (getLanguageUrl(language, trial + 1) !== getLanguageUrl(language, trial)) {
 					return loadLanguage($http, language, trial + 1);
@@ -110,7 +114,13 @@ Enjoy!
 					return retryOnFail($http, language, trial);
 				}
 
-				return $http.get(getLanguageUrl(language)).catch(retryOnFail.bind(null, $http, language, trial));
+				return $http.get(getLanguageUrl(language)).catch(retryOnFail.bind(null, $http, language, trial)).then(function (response) {
+					return response.data;
+				}).then(transformResponse);
+			};
+
+			this.transformResponse = function (func) {
+				transformResponse = func;
 			};
 
 			this.setFallBackLanguage = function (_fallBackLanguage) {
@@ -166,13 +176,17 @@ Enjoy!
 				resourceFileLoaded = true;
 			};
 
+			this.setReplacementString = function (func) {
+				getReplacementString = func;
+			};
+
 			this.$get = ["localizationLoader", "$rootScope", "$window", function (localizationLoader, $rootScope) {
 				// loads the language resource file from the server
 				function initLocalizedResources() {
 					resourceFileLoaded = false;
 
-					localizationLoader.load(language).then(function (data) {
-						dictionary = data.data;
+					localizationLoader.load(language).then(function (dict) {
+						dictionary = dict;
 						resourceFileLoaded = true;
 						$rootScope.$broadcast("localizeResourcesUpdates");
 					});
@@ -217,7 +231,7 @@ Enjoy!
 						}
 
 						if (isNaN(min)) {
-							min = Infinity;
+							min = -Infinity;
 						}
 
 						if (isNaN(max)) {
