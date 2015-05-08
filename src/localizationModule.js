@@ -77,6 +77,7 @@ Enjoy!
 			var fallBackLanguage = "en-US";
 			var location = "assets/js/i18n/l_";
 			var availableLanguages = [];
+			var loadedLanguage;
 
 			var getLanguageUrl = function (language, trial) {
 				return location + language + ".json";
@@ -114,9 +115,12 @@ Enjoy!
 					return retryOnFail($http, language, trial);
 				}
 
-				return $http.get(getLanguageUrl(language)).catch(retryOnFail.bind(null, $http, language, trial)).then(function (response) {
+				return $http.get(getLanguageUrl(language)).then(function (response) {
 					return response.data;
-				}).then(transformResponse);
+				}).then(transformResponse).then(function (data) {
+					loadedLanguage = language;
+					return data;
+				}).catch(retryOnFail.bind(null, $http, language, trial));
 			};
 
 			this.transformResponse = function (func) {
@@ -155,6 +159,9 @@ Enjoy!
 				return {
 					load: function (baseLanguage) {
 						return loadLanguage($http, baseLanguage, 0);
+					},
+					getLoadedLanguage: function () {
+						return loadedLanguage;
 					}
 				};
 			}];
@@ -194,7 +201,7 @@ Enjoy!
 
 				var localize = {
 					getLanguage: function () {
-						return language;
+						return localizationLoader.getLoadedLanguage() || language;
 					},
 
 					setLocales: function (_dictionary) {
