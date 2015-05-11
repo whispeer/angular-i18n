@@ -115,6 +115,10 @@ Enjoy!
 					return retryOnFail($http, language, trial);
 				}
 
+				if (availableLanguages.indexOf(language) > -1) {
+					loadedLanguage = language;
+				}
+
 				return $http.get(getLanguageUrl(language)).then(function (response) {
 					return response.data;
 				}).then(transformResponse).then(function (data) {
