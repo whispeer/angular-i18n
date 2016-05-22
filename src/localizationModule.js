@@ -40,11 +40,9 @@ Enjoy!
 		function toReplacementObject(values) {
 			var result = {};
 			values.forEach(function (val) {
-				var keyVal = val.split("=");
-				if (keyVal.length !== 2) {
-					return;
-				}
-				result[keyVal.shift()] = keyVal.shift();
+				var index = val.indexOf("=");
+
+				result[val.substr(0, index)] = val.substr(index + 1, val.length);
 			});
 
 			return result;
